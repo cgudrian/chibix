@@ -76,7 +76,11 @@ static inline void freeItem(dispatch_item_t *item) {
 }
 
 void cxDispatchAfter(systime_t delay, dispatch_function_t func, void *context) {
-	dispatch_item_t *item = createItem(chVTGetSystemTime() + delay, func, context);
+	dispatch_item_t *item;
+	systime_t xtime;
+
+	xtime = chVTGetSystemTime() + delay;
+	item = createItem(xtime, func, context);
 
 	chMtxLock(&lock);
 	enqueue(item);
