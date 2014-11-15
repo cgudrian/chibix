@@ -64,10 +64,12 @@ static dispatch_item_t *createItem(systime_t xtime, dispatch_function_t func, vo
 	dispatch_item_t *item = chPoolAlloc(&item_pool);
 
 	chDbgAssert(item, "Out of memory");
+
 	item->xtime = xtime;
 	item->func = func;
 	item->context = context;
 	item->next = NULL;
+
 	return item;
 }
 
