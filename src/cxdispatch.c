@@ -39,7 +39,7 @@ static void enqueue(dispatch_item_t *entry) {
 	dispatch_item_t *prev = NULL;
 	dispatch_item_t *next = queue_head;
 
-	while (next && (next->xtime < entry->xtime)) {
+	while (next && (next->xtime <= entry->xtime)) {
 		prev = next;
 		next = next->next;
 	}
