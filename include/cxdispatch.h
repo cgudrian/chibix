@@ -22,10 +22,9 @@
 
 #if CX_CFG_USE_DISPATCH
 
-typedef void (*dispatch_function_t)(void *);
+typedef void (*dispatch_function_t)( void * );
 
 #define cxDispatch(func, context) cxDispatchAfter(0, (func), (context))
-
 
 #ifdef __cplusplus
 extern "C" {
@@ -33,7 +32,7 @@ extern "C" {
 	/**
 	 * Initializes the dispatch subsystem.
 	 */
-	void _dispatch_init(void);
+	void _dispatch_init( void );
 
 	/**
 	 * Registers the given function for later execution and returns immediately.
@@ -45,7 +44,7 @@ extern "C" {
 	 * @param context
 	 * 	A user defined context that gets passed to @c func.
 	 */
-	void cxDispatchAfter(systime_t delay, dispatch_function_t func, void *context);
+	void cxDispatchAfter( systime_t delay, dispatch_function_t func, void *context );
 #ifdef __cplusplus
 }
 #endif

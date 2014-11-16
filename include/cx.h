@@ -30,7 +30,7 @@ extern "C" {
 	/**
 	 * Initializes ChibiX.
 	 */
-	void cxInit(void);
+	void cxInit( void );
 #ifdef __cplusplus
 }
 #endif
