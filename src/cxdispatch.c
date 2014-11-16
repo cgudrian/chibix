@@ -33,7 +33,7 @@ struct dispatch_item {
 static memory_pool_t item_pool;
 static dispatch_item_t *queue_head;
 static condition_variable_t item_has_been_queued;
-static mutex_t lock;
+static mutex_t queue_lock;
 
 static void enqueue(dispatch_item_t *new_item) {
 	dispatch_item_t *prev = NULL;
@@ -86,9 +86,9 @@ void cxDispatchAfter(systime_t delay, dispatch_function_t func, void *context) {
 	xtime = chVTGetSystemTime() + delay;
 	item = createItem(xtime, func, context);
 
-	chMtxLock(&lock);
+	chMtxLock(&queue_lock);
 	enqueue(item);
-	chMtxUnlock(&lock);
+	chMtxUnlock(&queue_lock);
 
 	// signal the dispatcher thread
 	chCondSignal(&item_has_been_queued);
@@ -104,8 +104,8 @@ static dispatch_item_t *waitForItem(void) {
 	int32_t delay;
 	dispatch_item_t *item;
 
-	chMtxLock(&lock);
-	if (!queue_head)
+	chMtxLock(&queue_lock);
+	if (queue_head == NULL)
 		// the queue is empty – sleep until an item gets queued
 		chCondWait(&item_has_been_queued);
 	delay = delayForFirstItem();
@@ -119,7 +119,7 @@ static dispatch_item_t *waitForItem(void) {
 
 	// the first item is now due for execution
 	item = dequeueFirstItem();
-	chMtxUnlock(&lock);
+	chMtxUnlock(&queue_lock);
 
 	return item;
 }
@@ -152,7 +152,7 @@ void _dispatch_init(void) {
 
 	chCondObjectInit(&item_has_been_queued);
 	chPoolObjectInit(&item_pool, sizeof(dispatch_item_t), &chCoreAlloc);
-	chMtxObjectInit(&lock);
+	chMtxObjectInit(&queue_lock);
 	chThdCreateStatic(waDispatcher, sizeof(waDispatcher), NORMALPRIO, dispatcher, NULL);
 }
 
