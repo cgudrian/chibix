@@ -21,6 +21,6 @@
 
 void cxInit(void) {
 #if CX_CFG_USE_DISPATCH
-  _dispatch_init();
+	_dispatch_init();
 #endif
 }
