@@ -65,7 +65,7 @@ static dispatch_item_t *dequeueFirstItem(void) {
 static dispatch_item_t *createItem(systime_t xtime, dispatch_function_t func, void *context) {
 	dispatch_item_t *item = chPoolAlloc(&item_pool);
 
-	chDbgAssert(item, "Out of memory");
+	chDbgAssert(item != NULL, "could not allocate item");
 
 	item->xtime = xtime;
 	item->func = func;
@@ -95,6 +95,8 @@ void cxDispatchAfter(systime_t delay, dispatch_function_t func, void *context) {
 }
 
 static inline systime_t delayForFirstItem(void) {
+
+	chDbgAssert(queue_head != NULL, "queue is empty");
 	return queue_head->xtime - chVTGetSystemTime();
 }
 
