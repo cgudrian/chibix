@@ -81,10 +81,10 @@ static inline void freeItem(dispatch_item_t *item) {
 
 void cxDispatchAfter(systime_t delay, dispatch_function_t func, void *context) {
 	dispatch_item_t *item;
-	systime_t xtime;
 
-	xtime = chVTGetSystemTime() + delay;
-	item = createItem(xtime, func, context);
+	chDbgCheck(func != NULL);
+
+	item = createItem(chVTGetSystemTime() + delay, func, context);
 
 	chMtxLock(&queue_lock);
 	enqueue(item);
@@ -94,30 +94,27 @@ void cxDispatchAfter(systime_t delay, dispatch_function_t func, void *context) {
 	chCondSignal(&item_has_been_queued);
 }
 
-static inline systime_t delayForFirstItem(void) {
+static int32_t delayForFirstItem(void) {
 
-	chDbgAssert(queue_head != NULL, "queue is empty");
+	if (queue_head == NULL)
+		// the queue is currently empty - wait until an item has been queued
+		chCondWait(&item_has_been_queued);
+	chDbgAssert(queue_head != NULL, "queue still empty");
 	return queue_head->xtime - chVTGetSystemTime();
 }
 
-static dispatch_item_t *waitForItem(void) {
+static dispatch_item_t *nextItem(void) {
 	int32_t delay;
 	dispatch_item_t *item;
 
 	chMtxLock(&queue_lock);
-	if (queue_head == NULL)
-		// the queue is empty – sleep until an item gets queued
-		chCondWait(&item_has_been_queued);
-	delay = delayForFirstItem();
-	while (delay > 0) {
+	while ((delay = delayForFirstItem()) > 0) {
 		// the first item in the queue is not yet due for execution,
 		// so wait until it is or another item has been queued
 		if (chCondWaitTimeout(&item_has_been_queued, delay) == MSG_TIMEOUT)
+			// re-acquire the lock after a timeout
 			chMtxLock(&queue_lock);
-		// update the delay (the first item might have been replaced)
-		delay = delayForFirstItem();
 	}
-
 	// the first item is now due for execution
 	item = dequeueFirstItem();
 	chMtxUnlock(&queue_lock);
@@ -135,7 +132,7 @@ static THD_FUNCTION(dispatcher, arg) {
 	chRegSetThreadName("dispatcher");
 
 	while (true) {
-		item = waitForItem();
+		item = nextItem();
 
 		// copy the necessary information so that the item can be
 		// put back into the memory pool as soon as possible
