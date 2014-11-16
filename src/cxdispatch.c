@@ -112,7 +112,8 @@ static dispatch_item_t *waitForItem(void) {
 	while (delay > 0) {
 		// the first item in the queue is not yet due for execution,
 		// so wait until it is or another item has been queued
-		chCondWaitTimeout(&item_has_been_queued, delay);
+		if (chCondWaitTimeout(&item_has_been_queued, delay) == MSG_TIMEOUT)
+			chMtxLock(&queue_lock);
 		// update the delay (the first item might have been replaced)
 		delay = delayForFirstItem();
 	}
