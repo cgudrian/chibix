@@ -122,9 +122,9 @@ static dispatch_item_t *nextItem(void) {
 	return item;
 }
 
-static THD_WORKING_AREA(waDispatcher, CX_CFG_DISPATCH_WA_SIZE);
+static THD_WORKING_AREA(wa_dispatcher, CX_CFG_DISPATCH_WA_SIZE);
 static THD_FUNCTION(dispatcher, arg) {
-	(void) arg;
+	(void)arg;
 	dispatch_item_t *item;
 	dispatch_function_t func;
 	void *context;
@@ -151,7 +151,7 @@ void _dispatch_init(void) {
 	chCondObjectInit(&item_has_been_queued);
 	chPoolObjectInit(&item_pool, sizeof(dispatch_item_t), &chCoreAlloc);
 	chMtxObjectInit(&queue_lock);
-	chThdCreateStatic(waDispatcher, sizeof(waDispatcher), NORMALPRIO, dispatcher, NULL);
+	chThdCreateStatic(wa_dispatcher, sizeof(wa_dispatcher), NORMALPRIO, dispatcher, NULL);
 }
 
 #endif
