@@ -24,11 +24,28 @@
 
 typedef void (*dispatch_function_t)(void *);
 
+#define cxDispatch(func, context) cxDispatchAfter(0, (func), (context))
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void _dispatch_init(void);
-  void cxDispatchAfter(systime_t delay, dispatch_function_t func, void *context);
+	/**
+	 * Initializes the dispatch subsystem.
+	 */
+	void _dispatch_init(void);
+
+	/**
+	 * Registers the given function for later execution and returns immediately.
+	 *
+	 * @param delay
+	 * 	The delay after which @c func should be executed.
+	 * @param func
+	 * 	The function to be executed.
+	 * @param context
+	 * 	A user defined context that gets passed to @c func.
+	 */
+	void cxDispatchAfter(systime_t delay, dispatch_function_t func, void *context);
 #ifdef __cplusplus
 }
 #endif
