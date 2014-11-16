@@ -35,21 +35,23 @@ static dispatch_item_t *queue_head;
 static condition_variable_t item_has_been_queued;
 static mutex_t lock;
 
-static void enqueue(dispatch_item_t *entry) {
+static void enqueue(dispatch_item_t *new_item) {
 	dispatch_item_t *prev = NULL;
 	dispatch_item_t *next = queue_head;
 
-	while (next && (next->xtime <= entry->xtime)) {
+	// find a place for the new item in the queue
+	while (next && (next->xtime <= new_item->xtime)) {
 		prev = next;
 		next = next->next;
 	}
 
-	entry->next = next;
+	// link the items together
+	new_item->next = next;
 	if (prev)
-		prev->next = entry;
+		prev->next = new_item;
 	else
-		// this item is the new first one
-		queue_head = entry;
+		// the new item becomes the first one
+		queue_head = new_item;
 }
 
 static dispatch_item_t *dequeueFirstItem(void) {
