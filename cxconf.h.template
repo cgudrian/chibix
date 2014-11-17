@@ -1,0 +1,15 @@
+/*
+ * cxconf.h
+ *
+ *  Created on: 15.11.2014
+ *      Author: christian
+ */
+
+#ifndef _CXCONF_H_
+#define _CXCONF_H_
+
+#define CX_CFG_USE_DISPATCH TRUE
+#define CX_CFG_DISPATCH_WA_SIZE 512
+#define CX_CFG_DISPATCH_QUEUE_SIZE 0
+
+#endif /* CXCONF_H_ */

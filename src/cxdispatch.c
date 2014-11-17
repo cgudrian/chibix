@@ -70,16 +70,18 @@ static inline dispatch_item_t *dequeue_first( void ) {
 
 /**
  * Allocates an item from the memory pool and initializes it.
+ *
+ * This function returns NULL, if the memory pool is empty.
  */
 static dispatch_item_t *create_item( systime_t xtime, dispatch_function_t func, void *context ) {
 	dispatch_item_t *item = chPoolAlloc( &item_pool );
 
-	chDbgAssert( item != NULL, "could not allocate item" );
-
-	item->xtime = xtime;
-	item->func = func;
-	item->context = context;
-	item->next = NULL;
+	if( item ) {
+		item->xtime = xtime;
+		item->func = func;
+		item->context = context;
+		item->next = NULL;
+	}
 
 	return item;
 }
@@ -97,12 +99,13 @@ void cxDispatchAfter( systime_t delay, dispatch_function_t func, void *context )
 	chDbgCheck( func != NULL );
 
 	item = create_item( chVTGetSystemTime() + delay, func, context );
+	if( item ) {
+		chMtxLock( &queue_lock );
+		enqueue( item );
+		chMtxUnlock( &queue_lock );
+	}
 
-	chMtxLock( &queue_lock );
-	enqueue( item );
-	chMtxUnlock( &queue_lock );
-
-	// signal the dispatcher thread
+	// signal a waiting dispatcher thread
 	chCondSignal( &item_has_been_queued );
 }
 
@@ -110,6 +113,8 @@ void cxDispatchAfter( systime_t delay, dispatch_function_t func, void *context )
  * Returns the delay for the first item in the queue.
  *
  * If the queue is empty this function waits until an item has been queued.
+ * This function may return a negative value which means, that the
+ * first item in the queue is overdue for execution.
  */
 static inline int32_t first_delay( void ) {
 
@@ -166,10 +171,19 @@ static THD_FUNCTION(dispatcher, arg) {
 	return 0;
 }
 
+#if CX_CFG_DISPATCH_QUEUE_SIZE > 0
+static dispatch_item_t pool_items[CX_CFG_DISPATCH_QUEUE_SIZE];
+#endif
+
 void _dispatch_init( void ) {
 
 	chCondObjectInit( &item_has_been_queued );
+#if CX_CFG_DISPATCH_QUEUE_SIZE == 0
 	chPoolObjectInit( &item_pool, sizeof(dispatch_item_t), &chCoreAlloc );
+#else
+	chPoolObjectInit( &item_pool, sizeof(dispatch_item_t), NULL );
+	chPoolLoadArray( &item_pool, pool_items, CX_CFG_DISPATCH_QUEUE_SIZE );
+#endif
 	chMtxObjectInit( &queue_lock );
 	chThdCreateStatic( wa_dispatcher, sizeof(wa_dispatcher), NORMALPRIO, dispatcher, NULL );
 }

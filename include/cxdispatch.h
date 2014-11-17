@@ -56,9 +56,9 @@ extern "C" {
 	 * @param delay
 	 * 	The delay after which @c func should be executed.
 	 * @param func
-	 * 	The function to be executed.
+	 * 	The function to be executed. May not be NULL.
 	 * @param context
-	 * 	A user defined context that gets passed to @c func.
+	 * 	A user defined context that gets passed to @c func. May be NULL.
 	 */
 	void cxDispatchAfter( systime_t delay, dispatch_function_t func, void *context );
 #ifdef __cplusplus
