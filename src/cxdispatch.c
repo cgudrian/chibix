@@ -121,7 +121,7 @@ static inline int32_t first_delay( void ) {
 }
 
 /**
- * Waits until an item becomes due for execution an returns it.
+ * Waits until the first item becomes due for execution an returns it.
  */
 static dispatch_item_t *next_item( void ) {
 	int32_t delay;

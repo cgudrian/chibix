@@ -29,6 +29,8 @@ typedef void (*dispatch_function_t)( void * );
 
 /**
  * Registers the given function for immediate execution.
+ *
+ * It is a shorthand for @c cxDispatchAfter(0, func, context)
  */
 #define cxDispatch(func, context) cxDispatchAfter( 0, (func), (context) )
 
