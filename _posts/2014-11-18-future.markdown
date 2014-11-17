@@ -1,2 +1,14 @@
+---
+layout: posts
+title: A note from the future
+---
 This is a note from the future.
-
+{% highlight ruby %}
+def show
+  @widget = Widget(params[:id])
+  respond_to do |format|
+    format.html # show.html.erb
+    format.json { render json: @widget }
+  end
+end
+{% endhighlight %}
