@@ -103,10 +103,10 @@ void cxDispatchAfter( systime_t delay, dispatch_function_t func, void *context )
 		chMtxLock( &queue_lock );
 		enqueue( item );
 		chMtxUnlock( &queue_lock );
-	}
 
-	// signal a waiting dispatcher thread
-	chCondSignal( &item_has_been_queued );
+		// signal a waiting dispatcher thread
+		chCondSignal( &item_has_been_queued );
+	}
 }
 
 /**
