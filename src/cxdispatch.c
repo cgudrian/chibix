@@ -35,6 +35,9 @@ static dispatch_item_t *queue_head;
 static condition_variable_t item_has_been_queued;
 static mutex_t queue_lock;
 
+/**
+ * Puts an item in the queue.
+ */
 static void enqueue( dispatch_item_t *new_item ) {
 	dispatch_item_t *prev = NULL;
 	dispatch_item_t *next = queue_head;
@@ -54,6 +57,9 @@ static void enqueue( dispatch_item_t *new_item ) {
 		queue_head = new_item;
 }
 
+/**
+ * Dequeues the first item and returns it.
+ */
 static inline dispatch_item_t *dequeue_first( void ) {
 	dispatch_item_t *entry = queue_head;
 
@@ -62,6 +68,9 @@ static inline dispatch_item_t *dequeue_first( void ) {
 	return entry;
 }
 
+/**
+ * Allocates an item from the memory pool and initializes it.
+ */
 static dispatch_item_t *create_item( systime_t xtime, dispatch_function_t func, void *context ) {
 	dispatch_item_t *item = chPoolAlloc( &item_pool );
 
@@ -75,6 +84,9 @@ static dispatch_item_t *create_item( systime_t xtime, dispatch_function_t func, 
 	return item;
 }
 
+/**
+ * Puts an item back into the memory pool.
+ */
 static inline void free_item( dispatch_item_t *item ) {
 	chPoolFree( &item_pool, item );
 }
@@ -94,6 +106,11 @@ void cxDispatchAfter( systime_t delay, dispatch_function_t func, void *context )
 	chCondSignal( &item_has_been_queued );
 }
 
+/**
+ * Returns the delay for the first item in the queue.
+ *
+ * If the queue is empty this function waits until an item has been queued.
+ */
 static inline int32_t first_delay( void ) {
 
 	if( queue_head == NULL )
@@ -103,6 +120,9 @@ static inline int32_t first_delay( void ) {
 	return queue_head->xtime - chVTGetSystemTime();
 }
 
+/**
+ * Waits until an item becomes due for execution an returns it.
+ */
 static dispatch_item_t *next_item( void ) {
 	int32_t delay;
 	dispatch_item_t *item;
@@ -154,4 +174,4 @@ void _dispatch_init( void ) {
 	chThdCreateStatic( wa_dispatcher, sizeof(wa_dispatcher), NORMALPRIO, dispatcher, NULL );
 }
 
-#endif
+#endif /* CX_CFG_USE_DISPATCH */

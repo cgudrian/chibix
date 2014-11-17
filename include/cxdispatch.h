@@ -22,9 +22,15 @@
 
 #if CX_CFG_USE_DISPATCH
 
+/**
+ * Type of a dispatchable function.
+ */
 typedef void (*dispatch_function_t)( void * );
 
-#define cxDispatch(func, context) cxDispatchAfter(0, (func), (context))
+/**
+ * Registers the given function for immediate execution.
+ */
+#define cxDispatch(func, context) cxDispatchAfter( 0, (func), (context) )
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,6 +42,14 @@ extern "C" {
 
 	/**
 	 * Registers the given function for later execution and returns immediately.
+	 *
+	 * The provided function is guaranteed to not be executed before @c delay has
+	 * passed. However there might be an arbitrary large amount of additional
+	 * delay depending on the current state of the system.
+	 *
+	 * Once @c delay has passed @c func is executed by a worker thread.
+	 *
+	 * @c func may be put on the dispatch queue multiple times.
 	 *
 	 * @param delay
 	 * 	The delay after which @c func should be executed.
@@ -49,6 +63,6 @@ extern "C" {
 }
 #endif
 
-#endif
+#endif /* CX_CFG_USE_DISPATCH */
 
 #endif /* _CXDISPATCH_H_ */
