@@ -1,5 +1,5 @@
 ---
-layout: posts
+layout: post
 title: A note from the future
 ---
 This is a note from the future.
