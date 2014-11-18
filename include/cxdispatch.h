@@ -62,6 +62,18 @@ extern "C" {
 void _dispatch_init( void );
 
 /**
+ * Initializes a dispatch queue.
+ *
+ * @param dq
+ *              a pointer to a @c dispatch_queue_t structure
+ * @param wsp
+ *              a pointer to the working area for the dispatcher thread
+ * @param ws_size
+ *              the size of the working area
+ */
+void cxDispQueueObjectInit( dispatch_queue_t *dq, void *wsp, size_t ws_size, tprio_t thd_prio );
+
+/**
  * Registers the given function for later execution and returns immediately.
  *
  * The provided function is guaranteed to not be executed before @c delay has
