@@ -27,10 +27,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-	/**
-	 * Initializes ChibiX.
-	 */
-	void cxInit( void );
+
+/**
+ * Initializes ChibiX.
+ */
+void cxInit( void );
+
 #ifdef __cplusplus
 }
 #endif

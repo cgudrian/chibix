@@ -117,7 +117,6 @@ void cxDispatchAfter( systime_t delay, dispatch_function_t func, void *context )
  * first item in the queue is overdue for execution.
  */
 static inline int32_t first_delay( void ) {
-
 	if( queue_head == NULL )
 		// the queue is currently empty - wait until an item has been queued
 		chCondWait( &item_has_been_queued );
@@ -147,8 +146,8 @@ static dispatch_item_t *next_item( void ) {
 	return item;
 }
 
-static THD_WORKING_AREA(wa_dispatcher, CX_CFG_DISPATCH_WA_SIZE);
-static THD_FUNCTION(dispatcher, arg) {
+static THD_WORKING_AREA( wa_dispatcher, CX_CFG_DISPATCH_WA_SIZE );
+static THD_FUNCTION( dispatcher, arg ) {
 	(void)arg;
 	dispatch_item_t *item;
 	dispatch_function_t func;
@@ -176,7 +175,6 @@ static dispatch_item_t pool_items[CX_CFG_DISPATCH_QUEUE_SIZE];
 #endif
 
 void _dispatch_init( void ) {
-
 	chCondObjectInit( &item_has_been_queued );
 #if CX_CFG_DISPATCH_QUEUE_SIZE == 0
 	chPoolObjectInit( &item_pool, sizeof(dispatch_item_t), &chCoreAlloc );
