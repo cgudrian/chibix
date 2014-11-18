@@ -86,6 +86,16 @@ static inline void free_item( dispatch_queue_t *dq, dispatch_item_t *item )
 	chPoolFree( &dq->item_pool, item );
 }
 
+static inline void lock_queue( dispatch_queue_t *dq )
+{
+	chMtxLock( &dq->queue_lock );
+}
+
+static inline void unlock_queue( dispatch_queue_t *dq )
+{
+	chMtxUnlock( &dq->queue_lock );
+}
+
 void cxDispatchAfter( dispatch_queue_t *dq, systime_t delay, dispatch_function_t func, void *context )
 {
 	dispatch_item_t *item;
@@ -94,9 +104,9 @@ void cxDispatchAfter( dispatch_queue_t *dq, systime_t delay, dispatch_function_t
 
 	item = create_item( dq, chVTGetSystemTime() + delay, func, context );
 	if( item ) {
-		chMtxLock( &dq->queue_lock );
+		lock_queue( dq );
 		enqueue( dq, item );
-		chMtxUnlock( &dq->queue_lock );
+		unlock_queue( dq );
 
 		// signal a waiting dispatcher thread
 		chCondSignal( &dq->item_enqueued );
@@ -127,17 +137,17 @@ static dispatch_item_t *next_item( dispatch_queue_t *dq )
 	int32_t delay;
 	dispatch_item_t *item;
 
-	chMtxLock( &dq->queue_lock );
+	lock_queue( dq );
 	while( (delay = first_delay( dq )) > 0 ) {
 		// the first item in the queue is not yet due for execution,
 		// so wait until it is or another item has been queued
 		if( chCondWaitTimeout( &dq->item_enqueued, delay ) == MSG_TIMEOUT )
 			// re-acquire the lock after a timeout
-			chMtxLock( &dq->queue_lock );
+			lock_queue( dq );
 	}
 	// the first item is now due for execution
 	item = dequeue_first( dq );
-	chMtxUnlock( &dq->queue_lock );
+	unlock_queue( dq );
 
 	return item;
 }
@@ -183,9 +193,11 @@ static dispatch_item_t pool_items[CX_CFG_DISPATCH_QUEUE_SIZE];
 
 void _dispatch_init( void )
 {
-	static THD_WORKING_AREA(normal_pq_workarea, CX_CFG_DISPATCH_WA_SIZE);
+	static THD_WORKING_AREA( normal_pq_workarea, CX_CFG_DISPATCH_WA_SIZE );
 
-	cxDispQueueObjectInit( &normal_priority_queue, &normal_pq_workarea, CX_CFG_DISPATCH_WA_SIZE, NORMALPRIO );
+	cxDispQueueObjectInit( &normal_priority_queue,
+	                       &normal_pq_workarea, CX_CFG_DISPATCH_WA_SIZE,
+	                       NORMALPRIO );
 }
 
 #endif /* CX_CFG_USE_DISPATCH */
