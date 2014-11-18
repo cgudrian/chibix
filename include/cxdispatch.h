@@ -27,12 +27,30 @@
  */
 typedef void (*dispatch_function_t)( void * );
 
+typedef struct dispatch_item dispatch_item_t;
+
+struct dispatch_item {
+	systime_t xtime;
+	dispatch_function_t func;
+	void *context;
+	dispatch_item_t *next;
+};
+
+typedef struct {
+	memory_pool_t item_pool;
+	dispatch_item_t *queue_head;
+	condition_variable_t item_available;
+	mutex_t queue_lock;
+} dispatch_queue_t;
+
+extern dispatch_queue_t normal_priority_queue;
+
 /**
  * Registers the given function for immediate execution.
  *
  * It is a shorthand for @c cxDispatchAfter(0, func, context)
  */
-#define cxDispatch( func, context ) cxDispatchAfter( 0, (func), (context) )
+#define cxDispatch( queue, func, context ) cxDispatchAfter( (queue), 0, (func), (context) )
 
 #ifdef __cplusplus
 extern "C" {
@@ -54,6 +72,8 @@ void _dispatch_init( void );
  *
  * @c func may be put on the dispatch queue multiple times.
  *
+ * @param dq
+ * 		The dispatch queue @c func should execute on.
  * @param delay
  *      The delay after which @c func should be executed.
  * @param func
@@ -61,7 +81,7 @@ void _dispatch_init( void );
  * @param context
  *      A user defined context that gets passed to @c func. May be NULL.
  */
-void cxDispatchAfter( systime_t delay, dispatch_function_t func, void *context );
+void cxDispatchAfter( dispatch_queue_t * dq, systime_t delay, dispatch_function_t func, void *context );
 
 #ifdef __cplusplus
 }

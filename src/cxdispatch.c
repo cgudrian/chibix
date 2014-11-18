@@ -21,26 +21,15 @@
 
 #if CX_CFG_USE_DISPATCH
 
-typedef struct dispatch_item dispatch_item_t;
-
-struct dispatch_item {
-	systime_t xtime;
-	dispatch_function_t func;
-	void *context;
-	dispatch_item_t *next;
-};
-
-static memory_pool_t item_pool;
-static dispatch_item_t *queue_head;
-static condition_variable_t item_has_been_queued;
-static mutex_t queue_lock;
+dispatch_queue_t normal_priority_queue;
 
 /**
  * Puts an item in the queue.
  */
-static void enqueue( dispatch_item_t *new_item ) {
+static void enqueue( dispatch_queue_t *dq, dispatch_item_t *new_item )
+{
 	dispatch_item_t *prev = NULL;
-	dispatch_item_t *next = queue_head;
+	dispatch_item_t *next = dq->queue_head;
 
 	// find a place for the new item in the queue
 	while( next && (next->xtime <= new_item->xtime) ) {
@@ -54,17 +43,18 @@ static void enqueue( dispatch_item_t *new_item ) {
 		prev->next = new_item;
 	else
 		// the new item becomes the first one
-		queue_head = new_item;
+		dq->queue_head = new_item;
 }
 
 /**
  * Dequeues the first item and returns it.
  */
-static inline dispatch_item_t *dequeue_first( void ) {
-	dispatch_item_t *entry = queue_head;
+static inline dispatch_item_t *dequeue_first( dispatch_queue_t *dq )
+{
+	dispatch_item_t *entry = dq->queue_head;
 
-	if( queue_head )
-		queue_head = queue_head->next;
+	if( dq->queue_head )
+		dq->queue_head = dq->queue_head->next;
 	return entry;
 }
 
@@ -73,8 +63,10 @@ static inline dispatch_item_t *dequeue_first( void ) {
  *
  * This function returns NULL, if the memory pool is empty.
  */
-static dispatch_item_t *create_item( systime_t xtime, dispatch_function_t func, void *context ) {
-	dispatch_item_t *item = chPoolAlloc( &item_pool );
+static dispatch_item_t *create_item( dispatch_queue_t *dq, systime_t xtime, dispatch_function_t func,
+                                     void *context )
+{
+	dispatch_item_t *item = chPoolAlloc( &dq->item_pool );
 
 	if( item ) {
 		item->xtime = xtime;
@@ -89,23 +81,25 @@ static dispatch_item_t *create_item( systime_t xtime, dispatch_function_t func, 
 /**
  * Puts an item back into the memory pool.
  */
-static inline void free_item( dispatch_item_t *item ) {
-	chPoolFree( &item_pool, item );
+static inline void free_item( dispatch_queue_t *dq, dispatch_item_t *item )
+{
+	chPoolFree( &dq->item_pool, item );
 }
 
-void cxDispatchAfter( systime_t delay, dispatch_function_t func, void *context ) {
+void cxDispatchAfter( dispatch_queue_t *dq, systime_t delay, dispatch_function_t func, void *context )
+{
 	dispatch_item_t *item;
 
-	chDbgCheck( func != NULL );
+	chDbgCheck( (dq != NULL) && (func != NULL) );
 
-	item = create_item( chVTGetSystemTime() + delay, func, context );
+	item = create_item( dq, chVTGetSystemTime() + delay, func, context );
 	if( item ) {
-		chMtxLock( &queue_lock );
-		enqueue( item );
-		chMtxUnlock( &queue_lock );
+		chMtxLock( &dq->queue_lock );
+		enqueue( dq, item );
+		chMtxUnlock( &dq->queue_lock );
 
 		// signal a waiting dispatcher thread
-		chCondSignal( &item_has_been_queued );
+		chCondSignal( &dq->item_available );
 	}
 }
 
@@ -116,53 +110,54 @@ void cxDispatchAfter( systime_t delay, dispatch_function_t func, void *context )
  * This function may return a negative value which means, that the
  * first item in the queue is overdue for execution.
  */
-static inline int32_t first_delay( void ) {
-	if( queue_head == NULL )
+static inline int32_t first_delay( dispatch_queue_t *dq )
+{
+	if( dq->queue_head == NULL )
 		// the queue is currently empty - wait until an item has been queued
-		chCondWait( &item_has_been_queued );
-	chDbgAssert( queue_head != NULL, "queue still empty" );
-	return queue_head->xtime - chVTGetSystemTime();
+		chCondWait( &dq->item_available );
+	chDbgAssert( dq->queue_head != NULL, "queue still empty" );
+	return dq->queue_head->xtime - chVTGetSystemTime();
 }
 
 /**
  * Waits until the first item becomes due for execution an returns it.
  */
-static dispatch_item_t *next_item( void ) {
+static dispatch_item_t *next_item( dispatch_queue_t *dq )
+{
 	int32_t delay;
 	dispatch_item_t *item;
 
-	chMtxLock( &queue_lock );
-	while( (delay = first_delay()) > 0 ) {
+	chMtxLock( &dq->queue_lock );
+	while( (delay = first_delay( dq )) > 0 ) {
 		// the first item in the queue is not yet due for execution,
 		// so wait until it is or another item has been queued
-		if( chCondWaitTimeout( &item_has_been_queued, delay ) == MSG_TIMEOUT )
+		if( chCondWaitTimeout( &dq->item_available, delay ) == MSG_TIMEOUT )
 			// re-acquire the lock after a timeout
-			chMtxLock( &queue_lock );
+			chMtxLock( &dq->queue_lock );
 	}
 	// the first item is now due for execution
-	item = dequeue_first();
-	chMtxUnlock( &queue_lock );
+	item = dequeue_first( dq );
+	chMtxUnlock( &dq->queue_lock );
 
 	return item;
 }
 
-static THD_WORKING_AREA( wa_dispatcher, CX_CFG_DISPATCH_WA_SIZE );
 static THD_FUNCTION( dispatcher, arg ) {
-	(void)arg;
 	dispatch_item_t *item;
 	dispatch_function_t func;
 	void *context;
+	dispatch_queue_t *dq = (dispatch_queue_t *)arg;
 
 	chRegSetThreadName( "dispatcher" );
 
 	while( true ) {
-		item = next_item();
+		item = next_item( dq );
 
 		// copy the necessary information so that the item can be
 		// put back into the memory pool as soon as possible
 		func = item->func;
 		context = item->context;
-		free_item( item );
+		free_item( dq, item );
 
 		// call the function
 		func( context );
@@ -170,20 +165,27 @@ static THD_FUNCTION( dispatcher, arg ) {
 	return 0;
 }
 
+void cxDispQueueObjectInit( dispatch_queue_t *dq, void *wsp, size_t ws_size, tprio_t thd_prio )
+{
+	chDbgCheck( dq != NULL );
+
+	dq->queue_head = NULL;
+	chCondObjectInit( &dq->item_available );
+	chPoolObjectInit( &dq->item_pool, sizeof(dispatch_item_t), &chCoreAlloc );
+	chMtxObjectInit( &dq->queue_lock );
+
+	chThdCreateStatic( wsp, ws_size, thd_prio, &dispatcher, dq );
+}
+
 #if CX_CFG_DISPATCH_QUEUE_SIZE > 0
 static dispatch_item_t pool_items[CX_CFG_DISPATCH_QUEUE_SIZE];
 #endif
 
-void _dispatch_init( void ) {
-	chCondObjectInit( &item_has_been_queued );
-#if CX_CFG_DISPATCH_QUEUE_SIZE == 0
-	chPoolObjectInit( &item_pool, sizeof(dispatch_item_t), &chCoreAlloc );
-#else
-	chPoolObjectInit( &item_pool, sizeof(dispatch_item_t), NULL );
-	chPoolLoadArray( &item_pool, pool_items, CX_CFG_DISPATCH_QUEUE_SIZE );
-#endif
-	chMtxObjectInit( &queue_lock );
-	chThdCreateStatic( wa_dispatcher, sizeof(wa_dispatcher), NORMALPRIO, dispatcher, NULL );
+void _dispatch_init( void )
+{
+	static THD_WORKING_AREA(normal_pq_workarea, CX_CFG_DISPATCH_WA_SIZE);
+
+	cxDispQueueObjectInit( &normal_priority_queue, &normal_pq_workarea, CX_CFG_DISPATCH_WA_SIZE, NORMALPRIO );
 }
 
 #endif /* CX_CFG_USE_DISPATCH */

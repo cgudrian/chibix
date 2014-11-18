@@ -19,7 +19,8 @@
 
 #include "cx.h"
 
-void cxInit( void ) {
+void cxInit( void )
+{
 #if CX_CFG_USE_DISPATCH
 	_dispatch_init();
 #endif
