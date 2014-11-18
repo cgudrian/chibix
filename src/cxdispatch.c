@@ -63,8 +63,9 @@ static inline dispatch_item_t *dequeue_first( dispatch_queue_t *dq )
  *
  * This function returns NULL, if the memory pool is empty.
  */
-static dispatch_item_t *create_item( dispatch_queue_t *dq, systime_t xtime, dispatch_function_t func,
-                                     void *context )
+static dispatch_item_t *dq_create_item( dispatch_queue_t *dq,
+                                        systime_t xtime,
+                                        dispatch_function_t func, void *context )
 {
 	dispatch_item_t *item = chPoolAlloc( &dq->item_pool );
 
@@ -81,19 +82,39 @@ static dispatch_item_t *create_item( dispatch_queue_t *dq, systime_t xtime, disp
 /**
  * Puts an item back into the memory pool.
  */
-static inline void free_item( dispatch_queue_t *dq, dispatch_item_t *item )
+static inline void dq_free_item( dispatch_queue_t *dq, dispatch_item_t *item )
 {
 	chPoolFree( &dq->item_pool, item );
 }
 
-static inline void lock_queue( dispatch_queue_t *dq )
+static inline void dq_lock( dispatch_queue_t *dq )
 {
 	chMtxLock( &dq->queue_lock );
 }
 
-static inline void unlock_queue( dispatch_queue_t *dq )
+static inline void dq_unlock( dispatch_queue_t *dq )
 {
 	chMtxUnlock( &dq->queue_lock );
+}
+
+static inline void dq_wait( dispatch_queue_t *dq )
+{
+	chCondWait( &dq->item_enqueued );
+}
+
+static inline msg_t dq_wait_timeout( dispatch_queue_t *dq, systime_t time )
+{
+	return chCondWaitTimeout( &dq->item_enqueued, time );
+}
+
+static inline void dq_notify( dispatch_queue_t *dq )
+{
+	chCondSignal( &dq->item_enqueued );
+}
+
+static inline bool dq_is_empty( dispatch_queue_t *dq )
+{
+	return dq->queue_head == NULL;
 }
 
 void cxDispatchAfter( dispatch_queue_t *dq, systime_t delay, dispatch_function_t func, void *context )
@@ -102,14 +123,14 @@ void cxDispatchAfter( dispatch_queue_t *dq, systime_t delay, dispatch_function_t
 
 	chDbgCheck( (dq != NULL) && (func != NULL) );
 
-	item = create_item( dq, chVTGetSystemTime() + delay, func, context );
+	item = dq_create_item( dq, chVTGetSystemTime() + delay, func, context );
 	if( item ) {
-		lock_queue( dq );
+		dq_lock( dq );
 		enqueue( dq, item );
-		unlock_queue( dq );
+		dq_unlock( dq );
 
 		// signal a waiting dispatcher thread
-		chCondSignal( &dq->item_enqueued );
+		dq_notify( dq );
 	}
 }
 
@@ -120,34 +141,34 @@ void cxDispatchAfter( dispatch_queue_t *dq, systime_t delay, dispatch_function_t
  * This function may return a negative value which means, that the
  * first item in the queue is overdue for execution.
  */
-static inline int32_t first_delay( dispatch_queue_t *dq )
+static inline int32_t dq_first_delay( dispatch_queue_t *dq )
 {
-	if( dq->queue_head == NULL )
+	if( dq_is_empty( dq ) )
 		// the queue is currently empty - wait until an item has been queued
-		chCondWait( &dq->item_enqueued );
-	chDbgAssert( dq->queue_head != NULL, "queue still empty" );
+		dq_wait( dq );
+	chDbgAssert( !dq_is_empty( dq ), "queue is still empty" );
 	return dq->queue_head->xtime - chVTGetSystemTime();
 }
 
 /**
  * Waits until the first item becomes due for execution an returns it.
  */
-static dispatch_item_t *next_item( dispatch_queue_t *dq )
+static dispatch_item_t *dq_next_item( dispatch_queue_t *dq )
 {
 	int32_t delay;
 	dispatch_item_t *item;
 
-	lock_queue( dq );
-	while( (delay = first_delay( dq )) > 0 ) {
+	dq_lock( dq );
+	while( (delay = dq_first_delay( dq )) > 0 ) {
 		// the first item in the queue is not yet due for execution,
 		// so wait until it is or another item has been queued
-		if( chCondWaitTimeout( &dq->item_enqueued, delay ) == MSG_TIMEOUT )
+		if( dq_wait_timeout( dq, delay ) == MSG_TIMEOUT )
 			// re-acquire the lock after a timeout
-			lock_queue( dq );
+			dq_lock( dq );
 	}
 	// the first item is now due for execution
 	item = dequeue_first( dq );
-	unlock_queue( dq );
+	dq_unlock( dq );
 
 	return item;
 }
@@ -168,13 +189,13 @@ static THD_FUNCTION( dispatcher, arg ) {
 	chRegSetThreadName( "dispatcher" );
 
 	while( true ) {
-		item = next_item( dq );
+		item = dq_next_item( dq );
 
 		// copy the necessary information so that the item can be
 		// put back into the memory pool as soon as possible
 		func = item->func;
 		context = item->context;
-		free_item( dq, item );
+		dq_free_item( dq, item );
 
 		// call the function
 		func( context );
