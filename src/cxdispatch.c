@@ -152,6 +152,13 @@ static dispatch_item_t *next_item( dispatch_queue_t *dq )
 	return item;
 }
 
+/**
+ * The dispatcher thread.
+ *
+ * This thread waits for items to be put on the dispatch queue
+ * that gets passed in as the argument. Once an item is available
+ * and due for execution it is dequeued and executed.
+ */
 static THD_FUNCTION( dispatcher, arg ) {
 	dispatch_item_t *item;
 	dispatch_function_t func;

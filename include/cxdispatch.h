@@ -85,15 +85,15 @@ void cxDispQueueObjectInit( dispatch_queue_t *dq, void *wsp, size_t ws_size, tpr
  * @c func may be put on the dispatch queue multiple times.
  *
  * @param dq
- * 		The dispatch queue @c func should execute on.
+ *		The dispatch queue @c func should execute on.
  * @param delay
- *      The delay after which @c func should be executed.
+ *              The delay after which @c func should be executed.
  * @param func
- *      The function to be executed. May not be NULL.
+ *		The function to be executed. May not be NULL.
  * @param context
- *      A user defined context that gets passed to @c func. May be NULL.
+ *		A user defined context that gets passed to @c func. May be NULL.
  */
-void cxDispatchAfter( dispatch_queue_t * dq, systime_t delay, dispatch_function_t func, void *context );
+void cxDispatchAfter( dispatch_queue_t *dq, systime_t delay, dispatch_function_t func, void *context );
 
 #ifdef __cplusplus
 }
