@@ -49,7 +49,7 @@ static void enqueue( dispatch_queue_t *dq, dispatch_item_t *new_item )
 /**
  * Dequeues the first item and returns it.
  */
-static inline dispatch_item_t *dequeue_first( dispatch_queue_t *dq )
+static inline dispatch_item_t *dq_dequeue_first( dispatch_queue_t *dq )
 {
 	dispatch_item_t *entry = dq->queue_head;
 
@@ -167,7 +167,7 @@ static dispatch_item_t *dq_next_item( dispatch_queue_t *dq )
 			dq_lock( dq );
 	}
 	// the first item is now due for execution
-	item = dequeue_first( dq );
+	item = dq_dequeue_first( dq );
 	dq_unlock( dq );
 
 	return item;
