@@ -53,8 +53,8 @@ static inline dispatch_item_t *dequeue_first( dispatch_queue_t *dq )
 {
 	dispatch_item_t *entry = dq->queue_head;
 
-	if( dq->queue_head )
-		dq->queue_head = dq->queue_head->next;
+	if( entry )
+		dq->queue_head = entry->next;
 	return entry;
 }
 
