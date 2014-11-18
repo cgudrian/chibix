@@ -39,7 +39,7 @@ struct dispatch_item {
 typedef struct {
 	memory_pool_t item_pool;
 	dispatch_item_t *queue_head;
-	condition_variable_t item_available;
+	condition_variable_t item_enqueued;
 	mutex_t queue_lock;
 } dispatch_queue_t;
 

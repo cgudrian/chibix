@@ -99,7 +99,7 @@ void cxDispatchAfter( dispatch_queue_t *dq, systime_t delay, dispatch_function_t
 		chMtxUnlock( &dq->queue_lock );
 
 		// signal a waiting dispatcher thread
-		chCondSignal( &dq->item_available );
+		chCondSignal( &dq->item_enqueued );
 	}
 }
 
@@ -114,7 +114,7 @@ static inline int32_t first_delay( dispatch_queue_t *dq )
 {
 	if( dq->queue_head == NULL )
 		// the queue is currently empty - wait until an item has been queued
-		chCondWait( &dq->item_available );
+		chCondWait( &dq->item_enqueued );
 	chDbgAssert( dq->queue_head != NULL, "queue still empty" );
 	return dq->queue_head->xtime - chVTGetSystemTime();
 }
@@ -131,7 +131,7 @@ static dispatch_item_t *next_item( dispatch_queue_t *dq )
 	while( (delay = first_delay( dq )) > 0 ) {
 		// the first item in the queue is not yet due for execution,
 		// so wait until it is or another item has been queued
-		if( chCondWaitTimeout( &dq->item_available, delay ) == MSG_TIMEOUT )
+		if( chCondWaitTimeout( &dq->item_enqueued, delay ) == MSG_TIMEOUT )
 			// re-acquire the lock after a timeout
 			chMtxLock( &dq->queue_lock );
 	}
@@ -170,7 +170,7 @@ void cxDispQueueObjectInit( dispatch_queue_t *dq, void *wsp, size_t ws_size, tpr
 	chDbgCheck( dq != NULL );
 
 	dq->queue_head = NULL;
-	chCondObjectInit( &dq->item_available );
+	chCondObjectInit( &dq->item_enqueued );
 	chPoolObjectInit( &dq->item_pool, sizeof(dispatch_item_t), &chCoreAlloc );
 	chMtxObjectInit( &dq->queue_lock );
 
