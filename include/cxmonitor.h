@@ -93,7 +93,7 @@ static inline msg_t cxMonitorWait( monitor_t *monitor )
  * notified or the provided timeout expires.
  *
  * In contrast to chCondWaitTimeout this function re-acquires the monitor's
- * lock when a timeout occurs.
+ * lock when a timeout occurs and thus mimic the Java behavior.
  *
  * The invoking thread must hold the monitor's lock.
  */
@@ -107,7 +107,6 @@ static inline msg_t cxMonitorWaitTimeout( monitor_t *monitor, systime_t time )
 	chDbgAssert( chMtxGetNextMutexS() == &monitor->lock, "lock not acquired" );
 	msg = chCondWaitTimeoutS( &monitor->cond, time );
 	if( msg == MSG_TIMEOUT )
-		// after a timeout the lock has to be re-acquired
 		chMtxLockS( &monitor->lock );
 	chSysUnlock();
 
