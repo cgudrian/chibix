@@ -21,7 +21,7 @@
 
 void cxInit( void )
 {
-#if CX_CFG_USE_DISPATCH
+#if CX_CFG_USE_DISPATCH_QUEUES
 	_dispatch_init();
 #endif
 }
