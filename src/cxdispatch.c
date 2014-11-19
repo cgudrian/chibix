@@ -89,27 +89,27 @@ static inline void dq_free_item( dispatch_queue_t *dq, dispatch_item_t *item )
 
 static inline void dq_lock( dispatch_queue_t *dq )
 {
-	chMtxLock( &dq->queue_lock );
+	cxMonitorLock( &dq->monitor );
 }
 
 static inline void dq_unlock( dispatch_queue_t *dq )
 {
-	chMtxUnlock( &dq->queue_lock );
+	cxMonitorUnlock( &dq->monitor );
 }
 
 static inline void dq_wait( dispatch_queue_t *dq )
 {
-	chCondWait( &dq->item_enqueued );
+	cxMonitorWait( &dq->monitor );
 }
 
 static inline msg_t dq_wait_timeout( dispatch_queue_t *dq, systime_t time )
 {
-	return chCondWaitTimeout( &dq->item_enqueued, time );
+	return cxMonitorWaitTimeout( &dq->monitor, time );
 }
 
 static inline void dq_notify( dispatch_queue_t *dq )
 {
-	chCondSignal( &dq->item_enqueued );
+	cxMonitorNotify( &dq->monitor );
 }
 
 static inline bool dq_is_empty( dispatch_queue_t *dq )
@@ -159,13 +159,11 @@ static dispatch_item_t *dq_next_item( dispatch_queue_t *dq )
 	dispatch_item_t *item;
 
 	dq_lock( dq );
-	while( (delay = dq_first_delay( dq )) > 0 ) {
+	while( (delay = dq_first_delay( dq )) > 0 )
 		// the first item in the queue is not yet due for execution,
 		// so wait until it is or another item has been queued
-		if( dq_wait_timeout( dq, delay ) == MSG_TIMEOUT )
-			// re-acquire the lock after a timeout
-			dq_lock( dq );
-	}
+		dq_wait_timeout( dq, delay );
+
 	// the first item is now due for execution
 	item = dq_dequeue_first( dq );
 	dq_unlock( dq );
@@ -207,9 +205,8 @@ void cxDispQueueObjectInit( dispatch_queue_t *dq, void *wsp, size_t ws_size, tpr
 	chDbgCheck( dq != NULL );
 
 	dq->queue_head = NULL;
-	chCondObjectInit( &dq->item_enqueued );
+	cxMonitorObjectInit( &dq->monitor );
 	chPoolObjectInit( &dq->item_pool, sizeof(dispatch_item_t), &chCoreAlloc );
-	chMtxObjectInit( &dq->queue_lock );
 
 	chThdCreateStatic( wsp, ws_size, thd_prio, &dispatcher, dq );
 }
