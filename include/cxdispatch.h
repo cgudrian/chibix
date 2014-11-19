@@ -20,7 +20,7 @@
 #ifndef _CXDISPATCH_H_
 #define _CXDISPATCH_H_
 
-#if CX_CFG_USE_DISPATCH
+#if CX_CFG_USE_DISPATCH_QUEUES
 
 /**
  * Type of a dispatchable function.
@@ -42,7 +42,15 @@ typedef struct {
 	monitor_t monitor;
 } dispatch_queue_t;
 
+#if CX_CFG_DISPATCH_LOWPRIO_QUEUE
+extern dispatch_queue_t low_priority_queue;
+#endif
+#if CX_CFG_DISPATCH_NORMALPRIO_QUEUE
 extern dispatch_queue_t normal_priority_queue;
+#endif
+#if CX_CFG_DISPATCH_HIGHPRIO_QUEUE
+extern dispatch_queue_t high_priority_queue;
+#endif
 
 /**
  * Registers the given function for immediate execution.
@@ -98,6 +106,6 @@ void cxDispatchAfter( dispatch_queue_t *dq, systime_t delay, dispatch_function_t
 }
 #endif
 
-#endif /* CX_CFG_USE_DISPATCH */
+#endif /* CX_CFG_USE_DISPATCH_QUEUES */
 
 #endif /* _CXDISPATCH_H_ */
