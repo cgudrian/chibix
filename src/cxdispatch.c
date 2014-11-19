@@ -24,9 +24,11 @@
 #if CX_CFG_DISPATCH_LOWPRIO_QUEUE
 dispatch_queue_t low_priority_queue;
 #endif
+
 #if CX_CFG_DISPATCH_NORMALPRIO_QUEUE
 dispatch_queue_t normal_priority_queue;
 #endif
+
 #if CX_CFG_DISPATCH_HIGHPRIO_QUEUE
 dispatch_queue_t high_priority_queue;
 #endif
@@ -228,6 +230,7 @@ void _dispatch_init( void )
 	                       &low_pq_workarea, CX_CFG_DISPATCHER_WA_SIZE,
 	                       LOWPRIO );
 #endif
+
 #if CX_CFG_DISPATCH_NORMALPRIO_QUEUE
 	static THD_WORKING_AREA( normal_pq_workarea, CX_CFG_DISPATCHER_WA_SIZE );
 
@@ -235,6 +238,7 @@ void _dispatch_init( void )
 	                       &normal_pq_workarea, CX_CFG_DISPATCHER_WA_SIZE,
 	                       NORMALPRIO );
 #endif
+
 #if CX_CFG_DISPATCH_HIGHPRIO_QUEUE
 	static THD_WORKING_AREA( high_pq_workarea, CX_CFG_DISPATCHER_WA_SIZE );
 

@@ -45,9 +45,11 @@ typedef struct {
 #if CX_CFG_DISPATCH_LOWPRIO_QUEUE
 extern dispatch_queue_t low_priority_queue;
 #endif
+
 #if CX_CFG_DISPATCH_NORMALPRIO_QUEUE
 extern dispatch_queue_t normal_priority_queue;
 #endif
+
 #if CX_CFG_DISPATCH_HIGHPRIO_QUEUE
 extern dispatch_queue_t high_priority_queue;
 #endif
