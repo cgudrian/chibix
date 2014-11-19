@@ -17,25 +17,16 @@
  * along with ChibiX.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _CX_H_
-#define _CX_H_
+#include "cx.h"
 
-#include "ch.h"
-#include "cxconf.h"
-#include "cxmonitor.h"
-#include "cxdispatch.h"
+#if CX_CFG_USE_MONITORS
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+void cxMonitorObjectInit( monitor_t *monitor )
+{
+	chDbgCheck( monitor != NULL );
 
-/**
- * Initializes ChibiX.
- */
-void cxInit( void );
-
-#ifdef __cplusplus
+	chMtxObjectInit( &monitor->lock );
+	chCondObjectInit( &monitor->cond );
 }
-#endif
 
-#endif /* _CX_H_ */
+#endif
