@@ -67,53 +67,6 @@ static inline void cxMonitorNotifyAll( monitor_t *monitor )
 	chCondBroadcast( &monitor->cond );
 }
 
-/**
- * Releases the provided monitor's lock and waits until the monitor gets
- * notified.
- *
- * The invoking thread must hold the monitor's lock.
- */
-static inline msg_t cxMonitorWait( monitor_t *monitor )
-{
-	msg_t msg;
-
-	chDbgCheck( monitor != NULL );
-
-	chSysLock();
-	chDbgAssert( chMtxGetNextMutexS() == &monitor->lock, "lock not acquired" );
-	msg = chCondWaitS( &monitor->cond );
-	chSysUnlock();
-
-	return msg;
-}
-
-#if CH_CFG_USE_CONDVARS_TIMEOUT
-/**
- * Releases the provided monitor's lock and waits until the monitor gets
- * notified or the provided timeout expires.
- *
- * In contrast to chCondWaitTimeout this function re-acquires the monitor's
- * lock when a timeout occurs and thus mimic the Java behavior.
- *
- * The invoking thread must hold the monitor's lock.
- */
-static inline msg_t cxMonitorWaitTimeout( monitor_t *monitor, systime_t time )
-{
-	msg_t msg;
-
-	chDbgCheck( monitor != NULL );
-
-	chSysLock();
-	chDbgAssert( chMtxGetNextMutexS() == &monitor->lock, "lock not acquired" );
-	msg = chCondWaitTimeoutS( &monitor->cond, time );
-	if( msg == MSG_TIMEOUT )
-		chMtxLockS( &monitor->lock );
-	chSysUnlock();
-
-	return msg;
-}
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -124,6 +77,25 @@ extern "C" {
  * A monitor combines a mutex with a condition variable.
  */
 void cxMonitorObjectInit( monitor_t *monitor );
+
+/**
+ * Releases the provided monitor's lock and waits until the monitor gets
+ * notified.
+ *
+ * The invoking thread must hold the monitor's lock.
+ */
+msg_t cxMonitorWait( monitor_t *monitor );
+
+/**
+ * Releases the provided monitor's lock and waits until the monitor gets
+ * notified or the provided timeout expires.
+ *
+ * In contrast to chCondWaitTimeout this function re-acquires the monitor's
+ * lock when a timeout occurs and thus mimic the Java behavior.
+ *
+ * The invoking thread must hold the monitor's lock.
+ */
+msg_t cxMonitorWaitTimeout( monitor_t *monitor, systime_t time );
 
 #ifdef __cplusplus
 }
