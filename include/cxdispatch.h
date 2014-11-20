@@ -42,18 +42,6 @@ typedef struct {
 	monitor_t monitor;
 } dispatch_queue_t;
 
-#if CX_CFG_DISPATCH_LOWPRIO_QUEUE
-extern dispatch_queue_t low_priority_queue;
-#endif
-
-#if CX_CFG_DISPATCH_NORMALPRIO_QUEUE
-extern dispatch_queue_t normal_priority_queue;
-#endif
-
-#if CX_CFG_DISPATCH_HIGHPRIO_QUEUE
-extern dispatch_queue_t high_priority_queue;
-#endif
-
 /**
  * Registers the given function for immediate execution.
  *
@@ -96,7 +84,7 @@ void cxDispQueueObjectInit( dispatch_queue_t *dq, void *wsp, size_t ws_size, tpr
  * @param dq
  *		The dispatch queue @c func should execute on.
  * @param delay
- *              The delay after which @c func should be executed.
+ *		The delay after which @c func should be executed.
  * @param func
  *		The function to be executed. May not be NULL.
  * @param context

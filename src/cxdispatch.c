@@ -21,18 +21,6 @@
 
 #if CX_CFG_USE_DISPATCH_QUEUES
 
-#if CX_CFG_DISPATCH_LOWPRIO_QUEUE
-dispatch_queue_t low_priority_queue;
-#endif
-
-#if CX_CFG_DISPATCH_NORMALPRIO_QUEUE
-dispatch_queue_t normal_priority_queue;
-#endif
-
-#if CX_CFG_DISPATCH_HIGHPRIO_QUEUE
-dispatch_queue_t high_priority_queue;
-#endif
-
 /**
  * Puts an item in the queue.
  */
@@ -223,29 +211,6 @@ void cxDispQueueObjectInit( dispatch_queue_t *dq, void *wsp, size_t ws_size, tpr
 
 void _dispatch_init( void )
 {
-#if CX_CFG_DISPATCH_LOWPRIO_QUEUE
-	static THD_WORKING_AREA( low_pq_workarea, CX_CFG_DISPATCHER_WA_SIZE );
-
-	cxDispQueueObjectInit( &low_priority_queue,
-	                       &low_pq_workarea, CX_CFG_DISPATCHER_WA_SIZE,
-	                       LOWPRIO );
-#endif
-
-#if CX_CFG_DISPATCH_NORMALPRIO_QUEUE
-	static THD_WORKING_AREA( normal_pq_workarea, CX_CFG_DISPATCHER_WA_SIZE );
-
-	cxDispQueueObjectInit( &normal_priority_queue,
-	                       &normal_pq_workarea, CX_CFG_DISPATCHER_WA_SIZE,
-	                       NORMALPRIO );
-#endif
-
-#if CX_CFG_DISPATCH_HIGHPRIO_QUEUE
-	static THD_WORKING_AREA( high_pq_workarea, CX_CFG_DISPATCHER_WA_SIZE );
-
-	cxDispQueueObjectInit( &high_priority_queue,
-	                       &high_pq_workarea, CX_CFG_DISPATCHER_WA_SIZE,
-	                       HIGHPRIO );
-#endif
 }
 
 #endif /* CX_CFG_USE_DISPATCH_QUEUES */
