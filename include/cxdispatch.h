@@ -40,6 +40,7 @@ typedef struct {
 	memory_pool_t item_pool;
 	dispatch_item_t *queue_head;
 	monitor_t monitor;
+	tprio_t priority;
 } dispatch_queue_t;
 
 /**
@@ -96,6 +97,18 @@ void cxDispQueueObjectInit( dispatch_queue_t *dq, void *wsp, size_t ws_size, tpr
  *      a user defined context that gets passed to @c func. May be NULL.
  */
 void cxDispatchAfter( dispatch_queue_t *dq, systime_t delay, dispatch_function_t func, void *context );
+
+/**
+ * Adds another worker thread to the provided dispatch queue.
+ *
+ * @param dq
+ *      the dispatch queue the thread should be added to
+ * @param wsp
+ *      the working area for the new thread
+ * @param ws_size
+ *      the size of the working area for the new thread
+ */
+void cxDispatchAddThread( dispatch_queue_t *dq, void *wsp, size_t ws_size );
 
 #ifdef __cplusplus
 }

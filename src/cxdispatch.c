@@ -203,10 +203,19 @@ void cxDispQueueObjectInit( dispatch_queue_t *dq, void *wsp, size_t ws_size, tpr
 	chDbgCheck( dq != NULL );
 
 	dq->queue_head = NULL;
+	dq->priority = thd_prio;
 	cxMonitorObjectInit( &dq->monitor );
 	chPoolObjectInit( &dq->item_pool, sizeof(dispatch_item_t), &chCoreAllocI );
 
-	chThdCreateStatic( wsp, ws_size, thd_prio, &dispatcher, dq );
+	// start the first worker
+	cxDispatchAddThread( dq, wsp, ws_size );
+}
+
+void cxDispatchAddThread( dispatch_queue_t *dq, void *wsp, size_t ws_size )
+{
+	chDbgCheck( dq != NULL );
+
+	chThdCreateStatic( wsp, ws_size, dq->priority, &dispatcher, dq );
 }
 
 void _dispatch_init( void )
