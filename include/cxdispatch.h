@@ -41,6 +41,7 @@ typedef struct {
 	dispatch_item_t *queue_head;
 	monitor_t monitor;
 	tprio_t priority;
+	const char *name;
 } dispatch_queue_t;
 
 /**
@@ -74,7 +75,8 @@ void _dispatch_init( void );
  * @param thd_prio
  *      the priority of the worker thread
  */
-void cxDispQueueObjectInit( dispatch_queue_t *dq, void *wsp, size_t ws_size, tprio_t thd_prio );
+void cxDispQueueObjectInit( dispatch_queue_t *dq, const char *name,
+                            void *wsp, size_t ws_size, tprio_t thd_prio );
 
 /**
  * Registers the given function for later execution and returns immediately.

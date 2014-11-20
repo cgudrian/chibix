@@ -61,8 +61,7 @@ static inline dispatch_item_t *dq_dequeue_first( dispatch_queue_t *dq )
  *
  * This function returns NULL, if the memory pool is empty.
  */
-static dispatch_item_t *dq_create_item( dispatch_queue_t *dq,
-                                        systime_t xtime,
+static dispatch_item_t *dq_create_item( dispatch_queue_t *dq, systime_t xtime,
                                         dispatch_function_t func, void *context )
 {
 	dispatch_item_t *item = chPoolAlloc( &dq->item_pool );
@@ -181,7 +180,7 @@ static THD_FUNCTION( dispatcher, dq ) {
 	dispatch_function_t func;
 	void *context;
 
-	chRegSetThreadName( "dispatcher" );
+	chRegSetThreadName( ((dispatch_queue_t *)dq)->name );
 
 	while( true ) {
 		item = dq_next_item( dq );
@@ -198,12 +197,14 @@ static THD_FUNCTION( dispatcher, dq ) {
 	return 0;
 }
 
-void cxDispQueueObjectInit( dispatch_queue_t *dq, void *wsp, size_t ws_size, tprio_t thd_prio )
+void cxDispQueueObjectInit( dispatch_queue_t *dq, const char *name,
+                            void *wsp, size_t ws_size, tprio_t thd_prio )
 {
 	chDbgCheck( dq != NULL );
 
 	dq->queue_head = NULL;
 	dq->priority = thd_prio;
+	dq->name = name;
 	cxMonitorObjectInit( &dq->monitor );
 	chPoolObjectInit( &dq->item_pool, sizeof(dispatch_item_t), &chCoreAllocI );
 
