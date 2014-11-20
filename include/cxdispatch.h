@@ -61,12 +61,17 @@ void _dispatch_init( void );
 /**
  * Initializes a dispatch queue.
  *
+ * This function initializes the provided dispatch queue and starts
+ * a first worker thread.
+ *
  * @param dq
- *              a pointer to a @c dispatch_queue_t structure
+ *      a pointer to a @c dispatch_queue_t structure
  * @param wsp
- *              a pointer to the working area for the dispatcher thread
+ *      a pointer to the working area for the worker thread
  * @param ws_size
- *              the size of the working area
+ *      the size of the working area
+ * @param thd_prio
+ *      the priority of the worker thread
  */
 void cxDispQueueObjectInit( dispatch_queue_t *dq, void *wsp, size_t ws_size, tprio_t thd_prio );
 
@@ -82,13 +87,13 @@ void cxDispQueueObjectInit( dispatch_queue_t *dq, void *wsp, size_t ws_size, tpr
  * @c func may be put on the dispatch queue multiple times.
  *
  * @param dq
- *		The dispatch queue @c func should execute on.
+ *      the dispatch queue @c func should execute on.
  * @param delay
- *		The delay after which @c func should be executed.
+ *      the delay after which @c func should be executed.
  * @param func
- *		The function to be executed. May not be NULL.
+ *      the function to be executed. May not be NULL.
  * @param context
- *		A user defined context that gets passed to @c func. May be NULL.
+ *      a user defined context that gets passed to @c func. May be NULL.
  */
 void cxDispatchAfter( dispatch_queue_t *dq, systime_t delay, dispatch_function_t func, void *context );
 
