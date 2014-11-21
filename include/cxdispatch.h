@@ -66,12 +66,9 @@ void _dispatch_init( void );
  * This function initializes the provided dispatch queue and starts
  * a first worker thread.
  *
- * @param dq
- *      a pointer to a @c dispatch_queue_t structure
- * @param name
- * 		the name of the queue
- * @param thd_prio
- *      the priority of the worker thread
+ * @param dq         a pointer to a @c dispatch_queue_t structure
+ * @param name       the name of the queue
+ * @param thd_prio   the priority of the worker thread
  */
 void cxDispQueueObjectInit( dispatch_queue_t *dq, const char *name, tprio_t thd_prio );
 
@@ -86,22 +83,17 @@ void cxDispQueueObjectInit( dispatch_queue_t *dq, const char *name, tprio_t thd_
  *
  * @c func may be put on the dispatch queue multiple times.
  *
- * @param dq
- *      the dispatch queue @c func should execute on.
- * @param delay
- *      the delay after which @c func should be executed.
- * @param func
- *      the function to be executed. May not be NULL.
- * @param context
- *      a user defined context that gets passed to @c func. May be NULL.
+ * @param dq        the dispatch queue @c func should execute on.
+ * @param delay     the delay after which @c func should be executed.
+ * @param func      the function to be executed. May not be NULL.
+ * @param context   a user defined context that gets passed to @c func. May be NULL.
  */
 void cxDispatchAfter( dispatch_queue_t *dq, systime_t delay, dispatch_function_t func, void *context );
 
 /**
  * Adds another worker thread to the provided dispatch queue.
  *
- * @param dq
- *      the dispatch queue the thread should be added to
+ * @param dq   the dispatch queue the thread should be added to
  */
 void cxDispatchAddThread( dispatch_queue_t *dq );
 
