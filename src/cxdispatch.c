@@ -177,7 +177,8 @@ static dispatch_item_t *dq_next_item( dispatch_queue_t *dq )
  * that gets passed in as the argument. Once an item is available
  * and due for execution it is dequeued and executed.
  */
-static THD_FUNCTION( dispatcher, dq ) {
+static msg_t dispatcher( void *dq )
+{
 	dispatch_item_t *item;
 	dispatch_function_t func;
 	void *context;
