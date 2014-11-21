@@ -47,7 +47,7 @@ typedef struct {
 /**
  * Registers the given function for immediate execution.
  *
- * It is a shorthand for @c cxDispatchAfter(0, func, context)
+ * It is a shorthand for @c cxDispatchAfter(0, func, context).
  */
 #define cxDispatch( queue, func, context ) cxDispatchAfter( (queue), 0, (func), (context) )
 
