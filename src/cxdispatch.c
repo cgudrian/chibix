@@ -21,7 +21,7 @@
 
 #if CX_CFG_USE_DISPATCH_QUEUES
 
-static memory_pool_t work_area_pool;
+static memory_pool_t dispatcher_pool;
 
 /**
  * Puts an item in the queue.
@@ -217,12 +217,12 @@ void cxDispatchAddThread( dispatch_queue_t *dq )
 {
 	chDbgCheck( dq != NULL );
 
-	chThdCreateFromMemoryPool( &work_area_pool, dq->priority, &dispatcher, dq );
+	chThdCreateFromMemoryPool( &dispatcher_pool, dq->priority, &dispatcher, dq );
 }
 
 void _dispatch_init( void )
 {
-	chPoolObjectInit( &work_area_pool, CX_CFG_DISPATCHER_WA_SIZE, &chCoreAllocI );
+	chPoolObjectInit( &dispatcher_pool, CX_CFG_DISPATCHER_WA_SIZE, &chCoreAllocI );
 }
 
 #endif /* CX_CFG_USE_DISPATCH_QUEUES */
