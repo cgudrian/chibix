@@ -21,6 +21,8 @@
 
 #if CX_CFG_USE_DISPATCH_QUEUES
 
+static memory_pool_t work_area_pool;
+
 /**
  * Puts an item in the queue.
  */
@@ -197,8 +199,7 @@ static THD_FUNCTION( dispatcher, dq ) {
 	return 0;
 }
 
-void cxDispQueueObjectInit( dispatch_queue_t *dq, const char *name,
-                            void *wsp, size_t ws_size, tprio_t thd_prio )
+void cxDispQueueObjectInit( dispatch_queue_t *dq, const char *name, tprio_t thd_prio )
 {
 	chDbgCheck( dq != NULL );
 
@@ -209,18 +210,19 @@ void cxDispQueueObjectInit( dispatch_queue_t *dq, const char *name,
 	chPoolObjectInit( &dq->item_pool, sizeof(dispatch_item_t), &chCoreAllocI );
 
 	// start the first worker
-	cxDispatchAddThread( dq, wsp, ws_size );
+	cxDispatchAddThread( dq );
 }
 
-void cxDispatchAddThread( dispatch_queue_t *dq, void *wsp, size_t ws_size )
+void cxDispatchAddThread( dispatch_queue_t *dq )
 {
 	chDbgCheck( dq != NULL );
 
-	chThdCreateStatic( wsp, ws_size, dq->priority, &dispatcher, dq );
+	chThdCreateFromMemoryPool( &work_area_pool, dq->priority, &dispatcher, dq );
 }
 
 void _dispatch_init( void )
 {
+	chPoolObjectInit( &work_area_pool, CX_CFG_DISPATCHER_WA_SIZE, &chCoreAllocI );
 }
 
 #endif /* CX_CFG_USE_DISPATCH_QUEUES */

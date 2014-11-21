@@ -68,15 +68,12 @@ void _dispatch_init( void );
  *
  * @param dq
  *      a pointer to a @c dispatch_queue_t structure
- * @param wsp
- *      a pointer to the working area for the worker thread
- * @param ws_size
- *      the size of the working area
+ * @param name
+ * 		the name of the queue
  * @param thd_prio
  *      the priority of the worker thread
  */
-void cxDispQueueObjectInit( dispatch_queue_t *dq, const char *name,
-                            void *wsp, size_t ws_size, tprio_t thd_prio );
+void cxDispQueueObjectInit( dispatch_queue_t *dq, const char *name, tprio_t thd_prio );
 
 /**
  * Registers the given function for later execution and returns immediately.
@@ -105,12 +102,8 @@ void cxDispatchAfter( dispatch_queue_t *dq, systime_t delay, dispatch_function_t
  *
  * @param dq
  *      the dispatch queue the thread should be added to
- * @param wsp
- *      the working area for the new thread
- * @param ws_size
- *      the size of the working area for the new thread
  */
-void cxDispatchAddThread( dispatch_queue_t *dq, void *wsp, size_t ws_size );
+void cxDispatchAddThread( dispatch_queue_t *dq );
 
 #ifdef __cplusplus
 }
