@@ -19,8 +19,9 @@
 
 #include "cx.h"
 
-void cxInit( void ) {
-#if CX_CFG_USE_DISPATCH
+void cxInit( void )
+{
+#if CX_CFG_USE_DISPATCH_QUEUES
 	_dispatch_init();
 #endif
 }

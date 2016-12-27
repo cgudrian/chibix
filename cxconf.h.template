@@ -17,25 +17,13 @@
  * along with ChibiX.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _CX_H_
-#define _CX_H_
+#ifndef _CXCONF_H_
+#define _CXCONF_H_
 
-#include "ch.h"
-#include "cxconf.h"
-#include "cxmonitor.h"
-#include "cxdispatch.h"
+#define CX_CFG_USE_MONITORS TRUE
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#define CX_CFG_USE_DISPATCH TRUE
+#define CX_CFG_DISPATCH_WA_SIZE 512
+#define CX_CFG_DISPATCH_QUEUE_SIZE 0
 
-/**
- * Initializes ChibiX.
- */
-void cxInit( void );
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* _CX_H_ */
+#endif /* _CXCONF_H_ */
