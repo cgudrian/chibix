@@ -5,4 +5,4 @@ Extensions for [ChibiOS/RT](http://chibios.org)
 
 # Disclaimer
 
-This project is not affiliated to ChibiOS/RT.
+This project is not affiliated with ChibiOS/RT.
