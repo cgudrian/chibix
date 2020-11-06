@@ -26,14 +26,13 @@
 #include "cxdispatch.h"
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
-    /**
+/**
  * Initializes ChibiX.
  */
-    void cxInit(void);
+void cxInit( void );
 
 #ifdef __cplusplus
 }
