@@ -22,71 +22,73 @@
 
 #if CX_CFG_USE_MONITORS
 
-typedef struct {
-	mutex_t lock;
-	condition_variable_t cond;
+typedef struct
+{
+    mutex_t lock;
+    condition_variable_t cond;
 } monitor_t;
 
 /**
  * Acquires the lock on the provided monitor.
  */
-static inline void cxMonitorLock( monitor_t *monitor )
+static inline void cxMonitorLock(monitor_t *monitor)
 {
-	chDbgCheck( monitor != NULL );
+    chDbgCheck(monitor != NULL);
 
-	chMtxLock( &monitor->lock );
+    chMtxLock(&monitor->lock);
 }
 
 /**
  * Releases the lock on the provided monitor.
  */
-static inline void cxMonitorUnlock( monitor_t *monitor )
+static inline void cxMonitorUnlock(monitor_t *monitor)
 {
-	chDbgCheck( monitor != NULL );
+    chDbgCheck(monitor != NULL);
 
-	chMtxUnlock( &monitor->lock );
+    chMtxUnlock(&monitor->lock);
 }
 
 /**
  * Notifies one thread that is currently waiting on this monitor.
  */
-static inline void cxMonitorNotify( monitor_t *monitor )
+static inline void cxMonitorNotify(monitor_t *monitor)
 {
-	chDbgCheck( monitor != NULL );
+    chDbgCheck(monitor != NULL);
 
-	chCondSignal( &monitor->cond );
+    chCondSignal(&monitor->cond);
 }
 
 /**
  * Notifies all threads that are currently waiting on this monitor.
  */
-static inline void cxMonitorNotifyAll( monitor_t *monitor )
+static inline void cxMonitorNotifyAll(monitor_t *monitor)
 {
-	chDbgCheck( monitor != NULL );
+    chDbgCheck(monitor != NULL);
 
-	chCondBroadcast( &monitor->cond );
+    chCondBroadcast(&monitor->cond);
 }
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-/**
+    /**
  * Initializes a monitor object.
  *
  * A monitor combines a mutex with a condition variable.
  */
-void cxMonitorObjectInit( monitor_t *monitor );
+    void cxMonitorObjectInit(monitor_t *monitor);
 
-/**
+    /**
  * Releases the provided monitor's lock and waits until the monitor gets
  * notified.
  *
  * The invoking thread must hold the monitor's lock.
  */
-msg_t cxMonitorWait( monitor_t *monitor );
+    msg_t cxMonitorWait(monitor_t *monitor);
 
-/**
+    /**
  * Releases the provided monitor's lock and waits until the monitor gets
  * notified or the provided timeout expires.
  *
@@ -95,7 +97,7 @@ msg_t cxMonitorWait( monitor_t *monitor );
  *
  * The invoking thread must hold the monitor's lock.
  */
-msg_t cxMonitorWaitTimeout( monitor_t *monitor, systime_t time );
+    msg_t cxMonitorWaitTimeout(monitor_t *monitor, systime_t time);
 
 #ifdef __cplusplus
 }

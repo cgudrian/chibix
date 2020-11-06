@@ -25,23 +25,25 @@
 /**
  * Type of a dispatchable function.
  */
-typedef void (*dispatch_function_t)( void * );
+typedef void (*dispatch_function_t)(void *);
 
 typedef struct dispatch_item dispatch_item_t;
 
-struct dispatch_item {
-	systime_t xtime;
-	dispatch_function_t func;
-	void *context;
-	dispatch_item_t *next;
+struct dispatch_item
+{
+    systime_t xtime;
+    dispatch_function_t func;
+    void *context;
+    dispatch_item_t *next;
 };
 
-typedef struct {
-	memory_pool_t item_pool;
-	dispatch_item_t *queue_head;
-	monitor_t monitor;
-	tprio_t priority;
-	const char *name;
+typedef struct
+{
+    memory_pool_t item_pool;
+    dispatch_item_t *queue_head;
+    monitor_t monitor;
+    tprio_t priority;
+    const char *name;
 } dispatch_queue_t;
 
 /**
@@ -49,18 +51,19 @@ typedef struct {
  *
  * It is a shorthand for @c cxDispatchAfter(0, func, context).
  */
-#define cxDispatch( queue, func, context ) cxDispatchAfter( (queue), 0, (func), (context) )
+#define cxDispatch(queue, func, context) cxDispatchAfter((queue), 0, (func), (context))
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-/**
+    /**
  * Initializes the dispatch subsystem.
  */
-void _dispatch_init( void );
+    void _dispatch_init(void);
 
-/**
+    /**
  * Initializes a dispatch queue.
  *
  * This function initializes the provided dispatch queue and starts
@@ -70,9 +73,9 @@ void _dispatch_init( void );
  * @param name       the name of the queue
  * @param thd_prio   the priority of the worker thread
  */
-void cxDispQueueObjectInit( dispatch_queue_t *dq, const char *name, tprio_t thd_prio );
+    void cxDispQueueObjectInit(dispatch_queue_t *dq, const char *name, tprio_t thd_prio);
 
-/**
+    /**
  * Registers the given function for later execution and returns immediately.
  *
  * The provided function is guaranteed to not be executed before @c delay has
@@ -88,14 +91,14 @@ void cxDispQueueObjectInit( dispatch_queue_t *dq, const char *name, tprio_t thd_
  * @param func      the function to be executed. May not be NULL.
  * @param context   a user defined context that gets passed to @c func. May be NULL.
  */
-void cxDispatchAfter( dispatch_queue_t *dq, systime_t delay, dispatch_function_t func, void *context );
+    void cxDispatchAfter(dispatch_queue_t *dq, systime_t delay, dispatch_function_t func, void *context);
 
-/**
+    /**
  * Adds another worker thread to the provided dispatch queue.
  *
  * @param dq   the dispatch queue the thread should be added to
  */
-void cxDispatchAddThread( dispatch_queue_t *dq );
+    void cxDispatchAddThread(dispatch_queue_t *dq);
 
 #ifdef __cplusplus
 }
