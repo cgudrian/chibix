@@ -217,7 +217,7 @@ void cxDispatchAddThread( dispatch_queue_t *dq )
 {
 	chDbgCheck( dq != NULL );
 
-	chThdCreateFromMemoryPool( &dispatcher_pool, "Dispatcher Pool", dq->priority, &dispatcher, dq );
+	chThdCreateFromMemoryPool( &dispatcher_pool, "Dispatch Thread", dq->priority, &dispatcher, dq );
 }
 
 void _dispatch_init( void )
