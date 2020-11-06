@@ -177,7 +177,7 @@ static dispatch_item_t *dq_next_item( dispatch_queue_t *dq )
  * that gets passed in as the argument. Once an item is available
  * and due for execution it is dequeued and executed.
  */
-static msg_t dispatcher( void *dq )
+static void dispatcher( void *dq )
 {
 	dispatch_item_t *item;
 	dispatch_function_t func;
@@ -197,7 +197,6 @@ static msg_t dispatcher( void *dq )
 		// call the function
 		func( context );
 	}
-	return 0;
 }
 
 void cxDispQueueObjectInit( dispatch_queue_t *dq, const char *name, tprio_t thd_prio )
@@ -208,7 +207,7 @@ void cxDispQueueObjectInit( dispatch_queue_t *dq, const char *name, tprio_t thd_
 	dq->priority = thd_prio;
 	dq->name = name;
 	cxMonitorObjectInit( &dq->monitor );
-	chPoolObjectInit( &dq->item_pool, sizeof(dispatch_item_t), &chCoreAllocI );
+	chPoolObjectInit( &dq->item_pool, sizeof(dispatch_item_t), &chCoreAllocAlignedI );
 
 	// start the first worker
 	cxDispatchAddThread( dq );
@@ -218,12 +217,12 @@ void cxDispatchAddThread( dispatch_queue_t *dq )
 {
 	chDbgCheck( dq != NULL );
 
-	chThdCreateFromMemoryPool( &dispatcher_pool, dq->priority, &dispatcher, dq );
+	chThdCreateFromMemoryPool( &dispatcher_pool, "Dispatcher Pool", dq->priority, &dispatcher, dq );
 }
 
 void _dispatch_init( void )
 {
-	chPoolObjectInit( &dispatcher_pool, CX_CFG_DISPATCHER_WA_SIZE, &chCoreAllocI );
+	chPoolObjectInit( &dispatcher_pool, CX_CFG_DISPATCH_WA_SIZE, &chCoreAllocAlignedI );
 }
 
 #endif /* CX_CFG_USE_DISPATCH_QUEUES */
