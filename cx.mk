@@ -1,5 +1,9 @@
-CXSRC = ${CHIBIX}/src/cx.c \
-        ${CHIBIX}/src/cxdispatch.c \
-        ${CHIBIX}/src/cxmonitor.c
+CXSRC = $(CHIBIX)/src/cx.c \
+        $(CHIBIX)/src/cxdispatch.c \
+        $(CHIBIX)/src/cxmonitor.c
 
-CXINC = ${CHIBIX}/include
+CXINC = $(CHIBIX)/include
+
+# Shared variables
+ALLCSRC += $(CXSRC)
+ALLINC  += $(CXINC)
